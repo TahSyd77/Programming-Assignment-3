@@ -48,7 +48,7 @@ rankall <- function(outcome,num="best") {
         ## The lapply function will select and extract the correct row from the statehosps list.  The state abbreviations are 
         ## automatically used from the split function above, to label each row in ranked_hosp.  The result is that each state 
         ## will have one dataframe, with the selected row (matching the rank desired), including state abbreviation and hospital.
-        ## These rows are then combined into one file using the 'do.call' and 'rbind' functions.
+        ## These rows are then combined into one file using the 'data.frame' functions..
        
         ranked_hosp<-lapply(statehosps,function(y,num) {
                 
