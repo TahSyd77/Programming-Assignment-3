@@ -1,4 +1,4 @@
-rankall <- function(outcome,num) {
+rankall <- function(outcome,num="best") {
                 ## This function accepts an outcome (heart attack, heart failure, or pneumonia), and a desired rank.  The dataset 
                 ## used is a listing of hospitals, with corresponding values for each outcome, by state.  Depending on the outcome
                 ## selected, the hospitals are sorted according to the outcome chosen, and then the hospital that matches the
@@ -22,11 +22,12 @@ rankall <- function(outcome,num) {
         
         if (!outcome %in% outcome_list) {
                 stop ("invalid outcome")
-        } else if (outcome=="heart attack") {
-                col<-11
-        } else if (outcome=="heart failure") {
-                        col<-17
-                } else {col<-23}
+        } 
+        if (outcome=="heart attack") {col<-11}
+         
+        if (outcome=="heart failure") {col<-17}
+        
+        if (outcome=="pneumonia"){col<-23}
         
                 ## Update the column of values, to a numeric in order to perform accurate sorting and subsetting.
         hospitals[,col]<-suppressWarnings(as.numeric(as.character(hospitals[,col])))
@@ -35,11 +36,11 @@ rankall <- function(outcome,num) {
         ordered_list<-subset(hospitals,!is.na(hospitals[,col]))
         
                 ## Order the full list first by State, then by outcome, then by hospital name
-        ordered_list<-ordered_list[order(ordered_list[,7],ordered_list[,11],ordered_list[,2]),]
+        ordered_list<-ordered_list[order(ordered_list[,7],ordered_list[,col],ordered_list[,2]),]
         
                 ## split the full list into each state's list of hospitals, select only columns for state, hospital name and outcome
         statehosps<-split(ordered_list[,c(2,7,col)],ordered_list$State) 
-
+       
         ## If the rank is 'worst', select the last hospital listed for each state, by using the number of rows to determine
         ## the last row. 
         ## If the rank is 'best', replace the 'num' value with 1 (for first).  Select the correct row from each state, based on 
@@ -48,15 +49,20 @@ rankall <- function(outcome,num) {
         ## automatically used from the split function above, to label each row in ranked_hosp.  The result is that each state 
         ## will have one dataframe, with the selected row (matching the rank desired), including state abbreviation and hospital.
         ## These rows are then combined into one file using the 'do.call' and 'rbind' functions.
-        
-        if (num=="worst") {
-                ranked_hosp<-lapply(statehosps,function(x) {x[nrow(statehosps),1:2]})
-        }
-        else {
+       
+        ranked_hosp<-lapply(statehosps,function(y,num) {
+                
                 if (num=="best") {
-                num<-1
+                        return (y$Hospital.Name[1])
                 }
-                ranked_hosp<-lapply(statehosps,function(y) {y[num,1:2]})
-        }    
-        do.call(rbind,ranked_hosp)
+                if (num=="worst") {
+                        
+                        return (y$Hospital.Name[nrow(y)])
+                }        
+                if (is(num,"numeric")){
+                        return (y$Hospital.Name[num])
+                }
+        },num)
+        
+        data.frame(hospital=unlist(ranked_hosp), state=names(ranked_hosp))
         }
